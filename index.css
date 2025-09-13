@@ -275,7 +275,7 @@ body {
     100% {
         transform: rotateZ(-45deg) rotateX(75deg) rotateY(360deg);
     }
-}
+
 
 .animate-orbit-horizontal {
     animation: orbit-horizontal 12s linear infinite;
@@ -737,5 +737,6 @@ body {
     transform: translateX(-50%) translateY(-12px);
 
 }
+
 
 
