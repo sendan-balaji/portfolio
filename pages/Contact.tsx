@@ -1,3 +1,4 @@
+// Triggering a new deployment
 import React, { useState } from 'react';
 import { useAnimateOnScroll } from '../hooks/useAnimateOnScroll';
 import { supabase } from '../supabaseClient'; // Make sure to import the Supabase client
