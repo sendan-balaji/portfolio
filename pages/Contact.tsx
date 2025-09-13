@@ -54,6 +54,129 @@ const ContactPage: React.FC<ContactPageProps> = ({ setPage }) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+        setFeedback('Sending...');
+
+        try {
+            // Invoke the Supabase Edge Function to send the email
+            const { error } = await supabase.functions.invoke('send-contact-email', {
+                body: { record: formData },
+            });
+
+            if (error) {
+                // If the function returns an error, throw it to the catch block
+                throw error;
+            }
+
+            // If successful, update feedback and clear the form
+            setFeedback('Thank you! Your message has been sent.');
+            setFormData({ name: '', email: '', message: '' });
+
+        } catch (error: any) {
+            // Handle any errors that occurred during the process
+            console.error('Error sending message:', error);
+            // Display the specific message from the function, or a fallback
+            setFeedback(error.message || 'Sorry, there was an error sending your message. Please try again.');
+        } finally {
+            // This runs regardless of success or failure
+            setIsSubmitting(false);
+            // Clear the feedback message after 5 seconds
+            setTimeout(() => setFeedback(''), 5000);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col pt-8 pb-10 px-4">
+            <div className="container mx-auto max-w-4xl flex-grow">
+                <AnimatedSection>
+                    <header className="text-center">
+                        <h1 className="font-poppins text-5xl md:text-7xl font-extrabold text-white text-glow">Let’s Connect</h1>
+                        <p className="mt-4 text-lg text-slate-300 max-w-xl mx-auto">Got a project idea or just want to say hi? Reach me here 👇</p>
+                    </header>
+                </AnimatedSection>
+
+                <AnimatedSection delay={150}>
+                    <div className="mt-16 max-w-lg mx-auto">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">Name</label>
+                                <input type="text" id="name" name="name" required className="form-input" placeholder="Your Name" value={formData.name} onChange={handleChange} />
+                            </div>
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                                <input type="email" id="email" name="email" required className="form-input" placeholder="your.email@example.com" value={formData.email} onChange={handleChange} />
+                            </div>
+                            <div>
+                                <label htmlFor="message" className="block text-sm font-medium text-slate-300 mb-2">Message</label>
+                                <textarea id="message" name="message" required rows={5} className="form-input" placeholder="Your message..." value={formData.message} onChange={handleChange}></textarea>
+                            </div>
+                            <div>
+                                <button type="submit" disabled={isSubmitting} className="w-full btn-glow text-white font-semibold py-3 px-6 rounded-lg text-lg disabled:opacity-60 disabled:cursor-not-allowed">
+                                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                                </button>
+                            </div>
+                        </form>
+                        {feedback && (
+                            <p className={`mt-4 text-center font-medium transition-opacity duration-300 ${feedback.includes('error') || feedback.includes('Sorry') ? 'text-red-400' : 'text-indigo-300'}`}>{feedback}</p>
+                        )}
+                    </div>
+                </AnimatedSection>
+
+                <AnimatedSection delay={300}>
+                    <div className="mt-20 text-center">
+                        <h2 className="font-poppins text-2xl font-semibold text-white">Or find me on</h2>
+                        <div className="mt-6 flex justify-center gap-6">
+                            {socialLinks.map((link, index) => (
+                                <a
+                                    key={link.name}
+                                    href={link.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={link.name}
+                                    className="w-16 h-16 rounded-full flex items-center justify-center bg-slate-800/80 backdrop-blur-sm border border-slate-700 text-slate-400 transition-all duration-300 hover:text-white hover:bg-indigo-600 hover:border-indigo-500 hover:shadow-[0_0_20px_theme(colors.indigo.600)] hover:-translate-y-2 transform"
+                                    style={{ transitionDelay: `${index * 100}ms` }}
+                                >
+                                    {link.icon}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                </AnimatedSection>
+
+            </div>
+
+            <footer className="mt-20 text-center">
+                <p className="text-slate-500 text-sm">© 2025 Sendan | Built with React + Tailwind 💜</p>
+            </footer>
+        </div>
+    );
+};
+
+export default ContactPage;
+const EmailIcon = () => (
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z" /></svg>
+);
+
+const socialLinks = [
+    { name: 'GitHub', icon: <GitHubIcon />, href: 'https://github.com/sendan-balaji' },
+    { name: 'Discord', icon: <DiscordIcon />, href: 'https://discordapp.com/users/1357697152909840465' },
+    { name: 'LinkedIn', icon: <LinkedInIcon />, href: 'https://www.linkedin.com/in/sendan-balaji-4b45ba380' },
+    { name: 'Email', icon: <EmailIcon />, href: 'mailto:bssendan28@gmail.com' },
+];
+
+const ContactPage: React.FC<ContactPageProps> = ({ setPage }) => {
+    const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [feedback, setFeedback] = useState('');
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
     
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
